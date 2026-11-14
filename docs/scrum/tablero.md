@@ -18,5 +18,6 @@
 | | | PB-15 Segunda fuente: Excel de bosque |
 | | | PB-16 JOIN en Silver |
 | | | PB-17 KPIs en gold_final.csv |
+| | | PB-19 Ejecución automática 2 veces al día |
 
-**Velocidad:** Sprint 1 = 12 puntos · Sprint 2 = 18 puntos · Sprint 3 = 15 puntos · Sprint 4 = 16 puntos.
+**Velocidad:** Sprint 1 = 12 puntos · Sprint 2 = 18 puntos · Sprint 3 = 15 puntos · Sprint 4 = 19 puntos.

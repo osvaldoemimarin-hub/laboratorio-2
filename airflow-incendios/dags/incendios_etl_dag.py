@@ -1,26 +1,39 @@
 from __future__ import annotations
 
 import sys
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 
+import pendulum
 from airflow.sdk import DAG, task
 
 PROJECT_DIR = Path("/opt/airflow/incendios_etl")
 sys.path.insert(0, str(PROJECT_DIR))
 
+ZONA = "America/Bogota"
+
+# Programación según la disponibilidad de los datos:
+# - NOAA-20 pasa sobre Sudamérica dos veces al día: de noche (≈ 03:00–09:00 UTC) y de día
+#   (≈ 15:00–20:00 UTC).
+# - FIRMS publica los datos casi en tiempo real con unas 3 horas de demora (medido: 2,2–3,0 h).
+# - Por eso el DAG corre a las 07:00 y a las 19:00 hora de Colombia (12:00 y 00:00 UTC),
+#   cuando cada pasada ya está publicada completa.
+# - catchup=False: si el PC estaba apagado, al volver se ejecuta solo la corrida más reciente.
+HORARIO = "0 7,19 * * *"
+
 default_args = {
     "owner": "equipo-lab2",
-    "retries": 2,
-    "retry_delay": timedelta(minutes=2),
+    "retries": 3,
+    "retry_delay": timedelta(minutes=10),  # cubre cortes breves de red o de la API
 }
 
 with DAG(
     dag_id="incendios_firms_medallion",
     description="Green Data: API NASA FIRMS + Excel Banco Mundial -> Bronze -> Silver (JOIN) -> Gold (KPIs) -> Almacén -> Modelo",
-    start_date=datetime(2026, 11, 1),
-    schedule="0 6 * * *",  # todos los días a las 06:00 UTC (FIRMS se actualiza a diario)
+    start_date=pendulum.datetime(2026, 11, 1, tz=ZONA),
+    schedule=HORARIO,
     catchup=False,
+    max_active_runs=1,  # nunca dos ejecuciones a la vez sobre los mismos archivos
     default_args=default_args,
     tags=["etl", "medallion", "incendios", "nasa-firms"],
 ) as dag:

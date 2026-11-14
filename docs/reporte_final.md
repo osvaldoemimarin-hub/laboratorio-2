@@ -172,7 +172,12 @@ Las variables más útiles son `brillo_ti4` (0,33), `dif_brillo` (0,27) y `brill
 
 - **Airflow 3.3.2** en Docker Compose (api-server, scheduler, dag-processor, worker Celery, triggerer, Postgres y Redis), con una imagen propia que incluye pandas, scikit-learn, shapely, xlrd y openpyxl.
 - El proyecto se monta en el contenedor en `/opt/airflow/incendios_etl`.
-- **DAG `incendios_firms_medallion`** con 7 tareas. Las dos extracciones corren **en paralelo**: `[extraer_firms, extraer_excel_bosque] >> validar_bronze >> transformar_a_silver >> integrar_a_gold >> cargar_datawarehouse >> entrenar_modelo`. Corre a diario a las 06:00 UTC, con `catchup=False` y 2 reintentos por tarea.
+- **DAG `incendios_firms_medallion`** con 7 tareas. Las dos extracciones corren **en paralelo**: `[extraer_firms, extraer_excel_bosque] >> validar_bronze >> transformar_a_silver >> integrar_a_gold >> cargar_datawarehouse >> entrenar_modelo`. Corre automáticamente a las **07:00 y 19:00 hora de Colombia**, con `catchup=False`, `max_active_runs=1` y 3 reintentos por tarea (10 minutos entre cada uno).
+- **Horario según la disponibilidad de los datos:**
+  - El satélite NOAA-20 pasa sobre Sudamérica dos veces al día: de noche (≈ 03:00–09:00 UTC) y de día (≈ 15:00–20:00 UTC).
+  - FIRMS publica cada pasada unas 3 horas después. Se midió en los snapshots de Bronze: entre 2,2 y 3,0 horas desde la última observación hasta la descarga.
+  - Por eso el DAG corre a las 07:00 y 19:00 de Colombia (12:00 y 00:00 UTC), cuando cada pasada ya está completa.
+  - El Excel de bosque es anual: solo se vuelve a descargar si la copia de Bronze tiene más de 30 días.
 - **Supervisión de logs:** cada tarea deja en el log de Airflow lo que hizo. Ejemplos:
   - `Excel de bosque guardado en Bronze (descarga del Banco Mundial)`
   - `Silver: 65,734 detecciones únicas; bosque de 12 países; JOIN: 64,781 detecciones con dato de bosque (98.5%)`
@@ -186,19 +191,21 @@ Las variables más útiles son `brillo_ti4` (0,33), `dif_brillo` (0,27) y `brill
 |---|---|---|
 | `manual__2026-11-14T19:47:47` | primera ejecución (feed público) | success |
 | `manual__2026-11-14T19:49:11` | prueba de idempotencia | success |
-| `scheduled__2026-11-14T06:00:00` | programada | success |
+| `scheduled__2026-11-14T06:00:00` | programada (horario anterior: diario 06:00 UTC) | success |
 | `manual__2026-11-14T19:50:48` | gráficas ajustadas | success |
 | `manual__2026-11-14T20:42:57` | primera con la API (MAP_KEY) | success |
 | `manual__2026-11-14T20:57:34` | lanzada por el script de arranque | success |
 | `manual__2026-11-14T21:05:28` | orden reproducible | success |
 | `manual__2026-11-14T21:15:40` | **primera con las dos fuentes y el JOIN** | success |
 | `manual__2026-11-14T21:17:18` | corrección de formato de `gold_final` | success |
+| `scheduled__2026-11-14T12:00:00` | **automática con el horario nuevo** (franja de las 07:00 Colombia) | success |
+| `manual__2026-11-14T21:31:43` | verificación: el Excel vigente no se descarga de nuevo | success |
 
-- **Pruebas:** `tests/test_pipeline.py` tiene **12 pruebas**, todas aprobadas. Cubren:
+- **Pruebas:** `tests/test_pipeline.py` tiene **13 pruebas**, todas aprobadas. Cubren:
   - limpieza, deduplicación y reproducibilidad de Silver;
   - limpieza del Excel (último año, filtro de países, nulos);
   - JOIN y asignación de país, incluido un punto en el mar;
-  - validación del Excel, KPIs, carga del almacén y manejo de la API.
+  - validación del Excel y su vigencia de 30 días, KPIs, carga del almacén y manejo de la API.
 
 ## 7. Limitaciones y trabajo futuro
 

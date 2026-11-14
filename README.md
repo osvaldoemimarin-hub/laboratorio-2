@@ -94,7 +94,25 @@ docker compose exec airflow-scheduler airflow dags trigger incendios_firms_medal
 docker compose exec airflow-scheduler airflow dags list-runs incendios_firms_medallion
 ```
 
-El DAG está programado para las **06:00 UTC todos los días** (`schedule="0 6 * * *"`, `catchup=False`). La extracción reintenta 2 veces si falla la red.
+### Ejecución automática (según la disponibilidad de los datos)
+
+El DAG corre solo **dos veces al día: 07:00 y 19:00 hora de Colombia** (`schedule="0 7,19 * * *"`, zona `America/Bogota`). El horario se eligió con los propios datos:
+
+| | Pasada de NOAA-20 sobre Sudamérica (UTC) | Publicación en FIRMS | Ejecución del DAG |
+|---|---|---|---|
+| Nocturna | 03:00–09:00 (la mayoría 04–06) | ≈ 3 h después (medido: 2,2–3,0 h) | **07:00 Colombia** (12:00 UTC) |
+| Diurna | 15:00–20:00 (la mayoría 17) | ≈ 3 h después | **19:00 Colombia** (00:00 UTC) |
+
+- **El Excel del Banco Mundial es un dato anual:** solo se vuelve a descargar si la copia de Bronze tiene más de 30 días (`vigencia_dias` en `config.yaml`).
+- **Reintentos:** 3 por tarea, con 10 minutos de espera entre cada uno.
+- **Una sola ejecución a la vez:** `max_active_runs=1`.
+- **Si el PC estaba apagado** (`catchup=False`): al volver se ejecuta solo la corrida más reciente que quedó pendiente.
+
+**Para que todo sea automático en el PC:**
+
+1. Activar en Docker Desktop **Settings → General → "Start Docker Desktop when you sign in to your computer"**.
+2. Los contenedores tienen `restart: always`: cuando Docker arranca, Airflow vuelve solo y retoma la programación.
+3. Para pausar Airflow, usar `docker compose stop`, no `down`. `down` borra los contenedores y estos ya no se reanudan solos.
 
 ### 2. Sin Airflow (desarrollo)
 
@@ -118,7 +136,7 @@ El pipeline usa la **API de área de FIRMS**, que requiere una clave gratuita (*
 | Fuentes integradas | API REST de FIRMS + Excel del Banco Mundial (JOIN por país) |
 | Detecciones únicas (7–14 nov 2026) | **65.734** en Sudamérica, de ellas 1.026 en Colombia |
 | Cobertura del JOIN | 64.781 detecciones (98,5 %) con dato de bosque; el resto cae en el mar, Guayana Francesa o Centroamérica |
-| Ejecuciones del DAG | 9 (8 manuales + 1 programada), todas `success` |
+| Ejecuciones del DAG | 11 (9 manuales + 2 automáticas), todas `success` |
 | Almacén | `fact_detecciones` 65.734 · `dim_pais` 12 · `kpi_pais` 12 · `dim_fecha` 8 · `agg_diario_celda` 4.836 |
 | Regresión logística (baseline) | F1 macro **0,692** · accuracy 0,701 |
 | Random Forest | F1 macro **0,940** · accuracy 0,977 · CV 0,938 ± 0,002 |

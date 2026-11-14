@@ -42,7 +42,7 @@
 | WSL2 + Docker Desktop verificados | PB-08 | Osvaldo | Docker 29.9, Compose v5.6 |
 | `docker-compose.yaml` oficial 3.3.2 + `build: .` + montaje del proyecto | PB-08 | Osvaldo | Imagen `airflow-incendios:3.3.2` |
 | DAG `incendios_firms_medallion` (6 tareas, reintentos) | PB-08 | Osvaldo | Sin errores de importación |
-| Programación diaria a las 06:00 UTC | PB-09 | Osvaldo | La ejecución programada corrió con éxito |
+| Programación diaria a las 06:00 UTC | PB-09 | Osvaldo | La ejecución programada corrió con éxito (en el Sprint 4 se ajustó a 07:00 y 19:00 de Colombia) |
 | Pruebas con pytest | PB-10 | Nilson / Juan Andrés | 7/7 aprobadas (incluye reproducibilidad de Silver) |
 | README, reporte final y artefactos Scrum | PB-11 | Osvaldo / equipo | `docs/` |
 
@@ -64,5 +64,7 @@
 | KPIs por país en `gold_final.csv` y tabla `kpi_pais` | PB-17 | Juan Andrés / Nilson | Ranking de presión del fuego sobre el bosque |
 | Pruebas de la nueva fuente y del JOIN | PB-15, PB-16 | Juan Andrés | 12/12 aprobadas |
 | Imagen de Airflow con shapely/xlrd/openpyxl y DAG de 7 tareas | PB-15 | Osvaldo | `success` |
+| Horario según la disponibilidad de los datos (07:00 y 19:00 de Colombia) | PB-19 | Osvaldo | Pasadas del satélite y demora de publicación medidas; primera ejecución automática en `success` |
+| Excel anual: descarga solo si tiene más de 30 días | PB-19 | Nilson | Bronze sin copias repetidas; prueba automática |
 
 **Sprint review:** el JOIN cambia la lectura del problema. Brasil tiene el 57 % de las detecciones, pero **Guyana y Paraguay** sufren la mayor presión sobre su bosque. Se agrega PB-18 (temporada completa) para que los KPIs no dependan de una sola semana.

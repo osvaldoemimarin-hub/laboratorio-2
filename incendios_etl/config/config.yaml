@@ -21,6 +21,8 @@ fuente_excel:
   hoja: Data
   filas_encabezado: 3
   timeout_s: 120
+  # Dato anual: se vuelve a descargar solo si la copia de Bronze tiene más de estos días
+  vigencia_dias: 30
 
 limites_paises:
   # Natural Earth 1:50m (dominio público). Sirve para asignar el país de cada detección.

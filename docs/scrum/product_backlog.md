@@ -31,3 +31,4 @@
 | PB-16 | Como analista, quiero unir las dos fuentes con un JOIN en Silver | Alta | 5 | 4 | Hecho (país de cada detección + LEFT JOIN) |
 | PB-17 | Como PO, quiero KPIs de negocio en `gold_final.csv` para comparar países (tema Green Data) | Alta | 5 | 4 | Hecho |
 | PB-18 | Como analista, quiero cargar una temporada completa con consultas por fecha a la API | Media | 5 | — | Pendiente |
+| PB-19 | Como PO, quiero que el pipeline corra solo en el horario en que NASA publica los datos nuevos | Alta | 3 | 4 | Hecho (07:00 y 19:00 de Colombia) |

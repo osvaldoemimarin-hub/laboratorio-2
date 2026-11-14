@@ -139,6 +139,18 @@ def test_respuesta_invalida_de_api_falla():
         validar_csv_firms("Invalid MAP_KEY.", CFG["calidad"]["columnas_requeridas"])
 
 
+def test_excel_anual_no_se_descarga_si_esta_vigente(tmp_path):
+    from datetime import datetime, timezone
+    from src.extract.extract_excel import excel_vigente
+    (tmp_path / "bosque_banco_mundial_descarga_20261101T000000Z.xls").write_bytes(b"x")
+    reciente = tmp_path / "bosque_banco_mundial_descarga_20261110T120000Z.xls"
+    reciente.write_bytes(b"x")
+    ahora = datetime(2026, 11, 15, tzinfo=timezone.utc)
+    assert excel_vigente(tmp_path, 30, ahora) == reciente          # 5 días: vigente
+    assert excel_vigente(tmp_path, 3, ahora) is None               # vencido: se descarga
+    assert excel_vigente(tmp_path / "vacio", 30, ahora) is None    # sin archivos
+
+
 def test_reconoce_archivos_excel():
     assert es_excel(b"\xd0\xcf\x11\xe0resto") and es_excel(b"PK\x03\x04resto")
     assert not es_excel(b"<html>error</html>")
