@@ -101,8 +101,9 @@ El análisis completo está en [docs/reporte_final.md](docs/reporte_final.md).
 
 ## Equipo y roles Scrum
 
-| Integrante | Rol |
-|---|---|
-| Osvaldo Emilio Marin | Scrum Master + ML Engineer |
-| Nilson Jacobo Gonzales | Product Owner |
-| Edgar Adrian Ortiz | Data Engineer / Analyst |
+| Rol | Integrante | Responsabilidades |
+|---|---|---|
+| Product Owner | Edgar Adrian Ortiz | Define objetivos, prioriza el backlog, valida la entrega final |
+| Scrum Master | Osvaldo Emilio Marin | Coordina reuniones, mantiene el tablero, README y flujo Git |
+| Data Engineer / Analyst | Nilson Jacobo Gonzales | Descarga, calidad, limpieza y EDA |
+| ML Engineer | Juan Andrés Ruiz | Entrenamiento, evaluación y despliegue del modelo |
