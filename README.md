@@ -82,19 +82,20 @@ python main.py --sin-extraer   # reprocesa lo que ya hay en Bronze
 python -m pytest -q tests
 ```
 
-### Clave de la API FIRMS (opcional)
+### Clave de la API FIRMS
 
-Sin clave, la extracción usa el **feed público de 7 días** (no requiere registro). Con una clave gratuita (*MAP_KEY*, se solicita en https://firms.modaps.eosdis.nasa.gov/api/map_key/) se usa la **API de área**, que permite elegir la caja geográfica y el número de días. Se pone en `airflow-incendios/.env` como `FIRMS_MAP_KEY=...` y nunca se sube al repositorio.
+El pipeline usa la **API de área de FIRMS**, que requiere una clave gratuita (*MAP_KEY*, se solicita en https://firms.modaps.eosdis.nasa.gov/api/map_key/). La clave permite 5.000 consultas cada 10 minutos y hasta 5 días por consulta. Cada integrante pone su propia clave en `airflow-incendios/.env` como `FIRMS_MAP_KEY=...`. **La clave es personal: `.env` está en `.gitignore` y nunca se sube al repositorio.** Si no hay clave, la extracción usa automáticamente el **feed público de 7 días**, que no requiere registro.
 
 ## Resultados (ejecución en Airflow del 14-nov-2026)
 
 | | |
 |---|---|
-| Detecciones únicas (7–14 nov 2026) | **61.689** en Sudamérica, de ellas 1.703 en Colombia |
-| Ejecuciones del DAG | 4 (3 manuales + 1 programada), todas `success` |
-| Almacén | `fact_detecciones` 61.689 · `dim_fecha` 8 · `agg_diario_celda` 4.562 |
-| Regresión logística (baseline) | F1 macro **0,697** · accuracy 0,708 |
-| Random Forest | F1 macro **0,936** · accuracy 0,975 · CV 0,937 ± 0,004 |
+| Fuentes integradas | API de área de FIRMS (con MAP_KEY) + feed público de 7 días |
+| Detecciones únicas (7–14 nov 2026) | **64.515** en Sudamérica, de ellas 1.805 en Colombia |
+| Ejecuciones del DAG | 5 (4 manuales + 1 programada), todas `success` |
+| Almacén | `fact_detecciones` 64.515 · `dim_fecha` 8 · `agg_diario_celda` 4.737 |
+| Regresión logística (baseline) | F1 macro **0,690** · accuracy 0,702 |
+| Random Forest | F1 macro **0,935** · accuracy 0,975 · CV 0,936 ± 0,002 |
 | Modelo recomendado | **Random Forest** (+0,24 F1, supera el margen mínimo de 0,01) |
 
 El análisis completo está en [docs/reporte_final.md](docs/reporte_final.md).
