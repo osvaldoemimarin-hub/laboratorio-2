@@ -47,3 +47,22 @@
 | README, reporte final y artefactos Scrum | PB-11 | Osvaldo / equipo | `docs/` |
 
 **Sprint review:** 4 ejecuciones del DAG, todas en `success`. Bronze acumuló 4 snapshots y Silver se mantuvo en 61.689 detecciones únicas: se confirma la idempotencia. El incremento queda aceptado.
+
+---
+
+## Sprint 4: Segunda fuente, JOIN y KPIs (enunciado oficial "Green Data")
+
+**Objetivo:** cumplir el enunciado oficial, que pide integrar una API REST y un archivo Excel/CSV con un JOIN y entregar `gold_final.csv` con KPIs.
+
+| Tarea | Historia | Responsable | Resultado |
+|---|---|---|---|
+| Elegir la segunda fuente "verde" | PB-15 | Edgar / equipo | Área de bosque por país, Banco Mundial (`AG.LND.FRST.K2`) |
+| Extracción del Excel a Bronze con respaldo | PB-15 | Nilson | `extract_excel.py`, tarea `extraer_excel_bosque` en paralelo con la API |
+| Validación y limpieza del Excel (ancho → largo, último año) | PB-15 | Nilson | 12 países, año 2025 |
+| Asignar país a cada detección con los límites reales | PB-12, PB-16 | Nilson | Natural Earth + `shapely`; Colombia pasa de 1.805 (caja) a 1.026 detecciones |
+| LEFT JOIN por `pais_iso3` | PB-16 | Nilson | 98,5 % de las detecciones con dato de bosque |
+| KPIs por país en `gold_final.csv` y tabla `kpi_pais` | PB-17 | Juan Andrés / Nilson | Ranking de presión del fuego sobre el bosque |
+| Pruebas de la nueva fuente y del JOIN | PB-15, PB-16 | Juan Andrés | 12/12 aprobadas |
+| Imagen de Airflow con shapely/xlrd/openpyxl y DAG de 7 tareas | PB-15 | Osvaldo | `success` |
+
+**Sprint review:** el JOIN cambia la lectura del problema. Brasil tiene el 57 % de las detecciones, pero **Guyana y Paraguay** sufren la mayor presión sobre su bosque. Se agrega PB-18 (temporada completa) para que los KPIs no dependan de una sola semana.

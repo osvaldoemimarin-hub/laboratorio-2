@@ -12,13 +12,27 @@ fuente:
   dias: 5            # la API permite de 1 a 5 días por consulta
   timeout_s: 120
 
+fuente_excel:
+  # Segunda fuente: área de bosque por país (km²), Banco Mundial, indicador AG.LND.FRST.K2
+  indicador: AG.LND.FRST.K2
+  url: https://api.worldbank.org/v2/en/indicator/AG.LND.FRST.K2?downloadformat=excel
+  # Copia de respaldo incluida en el repositorio (se usa si no hay internet)
+  archivo_respaldo: data/referencia/API_AG.LND.FRST.K2_bosque_banco_mundial.xls
+  hoja: Data
+  filas_encabezado: 3
+  timeout_s: 120
+
+limites_paises:
+  # Natural Earth 1:50m (dominio público). Sirve para asignar el país de cada detección.
+  archivo: data/referencia/ne_50m_admin_0_countries.geojson
+  campo_iso3: ISO_A3_EH
+  campo_nombre: NAME_ES
+
+paises_sudamerica: [ARG, BOL, BRA, CHL, COL, ECU, GUY, PRY, PER, SUR, URY, VEN]
+
 region_interes:
   nombre: Colombia
-  # Caja aproximada de Colombia continental: lat_min, lat_max, lon_min, lon_max
-  lat_min: -4.3
-  lat_max: 13.5
-  lon_min: -79.1
-  lon_max: -66.8
+  iso3: COL
 
 calidad:
   min_filas_bronze: 100

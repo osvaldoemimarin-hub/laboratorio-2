@@ -12,7 +12,8 @@ Una historia se considera terminada cuando cumple **todas** estas condiciones:
 - [x] Las pruebas pasan: `python -m pytest -q tests`.
 - [x] Volver a ejecutar el pipeline no duplica datos (idempotencia).
 - [x] Los mismos datos producen siempre la misma tabla Silver y las mismas métricas (reproducibilidad).
-- [x] La validación de Bronze detiene el DAG si los datos llegan mal.
+- [x] La validación de Bronze (API y Excel) detiene el DAG si los datos llegan mal.
+- [x] Las dos fuentes quedan unidas en Silver con un JOIN y `gold_final.csv` contiene los KPIs.
 
 **Orquestación**
 - [x] `airflow dags list-import-errors` no muestra errores.

@@ -14,8 +14,28 @@ from src.config import FIGURES_DIR
 COLORES = {"baja": "#9aa5b1", "nominal": "#f0a030", "alta": "#c0392b"}
 
 
-def generar_graficas(det: pd.DataFrame, figures_dir: Path = FIGURES_DIR) -> None:
+def grafica_kpis(kpis: pd.DataFrame, figures_dir: Path = FIGURES_DIR) -> None:
+    k = kpis.sort_values("detecciones_por_1000km2_bosque")
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+    colores = ["#c0392b" if p == "COL" else "#e67e22" for p in k["pais_iso3"]]
+    axes[0].barh(k["pais_nombre"], k["detecciones_por_1000km2_bosque"], color=colores)
+    axes[0].set_title("Detecciones por cada 1.000 km² de bosque")
+    axes[0].set_xlabel("detecciones / 1.000 km² de bosque")
+    k2 = kpis.sort_values("n_detecciones")
+    axes[1].barh(k2["pais_nombre"], k2["n_detecciones"],
+                 color=["#c0392b" if p == "COL" else "#7f8c8d" for p in k2["pais_iso3"]])
+    axes[1].set_title("Detecciones totales por país")
+    axes[1].set_xscale("log")
+    axes[1].set_xlabel("detecciones (escala log)")
+    fig.suptitle("KPIs Green Data — incendios VIIRS (NASA FIRMS) × bosque (Banco Mundial)")
+    fig.tight_layout(); fig.savefig(figures_dir / "kpis_pais.png", dpi=120); plt.close(fig)
+
+
+def generar_graficas(det: pd.DataFrame, kpis: pd.DataFrame | None = None,
+                     figures_dir: Path = FIGURES_DIR) -> None:
     figures_dir.mkdir(parents=True, exist_ok=True)
+    if kpis is not None and len(kpis):
+        grafica_kpis(kpis, figures_dir)
 
     fig, ax = plt.subplots(figsize=(7, 8))
     for conf in ["nominal", "baja", "alta"]:

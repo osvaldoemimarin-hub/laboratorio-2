@@ -14,6 +14,7 @@ if __name__ == "__main__":
 
     if not args.sin_extraer:
         pipeline.etapa_extraer()
+        pipeline.etapa_extraer_excel()
     pipeline.etapa_validar_bronze()
     pipeline.etapa_silver()
     pipeline.etapa_gold()

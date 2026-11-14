@@ -7,6 +7,7 @@
 - **El análisis exploratorio previo al modelo** reveló que la confianza "alta" equivale a saturación del sensor. Así interpretamos bien el resultado, sin presentar un 0,94 de F1 como un logro mayor de lo que es.
 
 ## ¿Qué se puede mejorar?
+- **Leer el enunciado oficial desde el inicio.** Se trabajó con la guía técnica de Airflow, y el enunciado oficial (API + Excel con JOIN, KPIs en `gold_final.csv`, tema Green Data) se revisó después. Eso obligó a un Sprint 4 extra. Por suerte, la arquitectura por etapas permitió agregar la segunda fuente sin rehacer nada.
 - **Ventana corta:** el feed público solo cubre 7 días, así que el histórico depende de que el DAG corra a diario. *Actualización:* el equipo obtuvo la `MAP_KEY` y el DAG ya usa la API de área. La clave se maneja como secreto en `.env` y no se publica.
 - **Elección del objetivo:** se eligió una variable objetivo que el algoritmo de NASA ya calcula. Un objetivo de negocio (persistencia del fuego, PB-13) habría aportado más.
 - **Advertencias de entorno:** al usar Git Bash en Windows, `docker compose exec` convierte las rutas (`/opt/...` → `C:/Program Files/Git/opt/...`). Se resolvió con `MSYS_NO_PATHCONV=1`. Conviene documentarlo para el equipo.

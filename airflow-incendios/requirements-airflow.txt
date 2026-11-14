@@ -5,3 +5,6 @@ requests
 scikit-learn
 joblib
 matplotlib
+shapely
+xlrd
+openpyxl

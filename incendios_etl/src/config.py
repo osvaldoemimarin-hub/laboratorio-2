@@ -20,9 +20,14 @@ MODELS_DIR = OUTPUTS_DIR / "models"
 REPORTS_DIR = OUTPUTS_DIR / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 
+REFERENCIA_DIR = DATA_DIR / "referencia"
+
 SILVER_FILE = SILVER_DIR / "silver_detecciones.csv"
+SILVER_BOSQUE = SILVER_DIR / "silver_bosque_pais.csv"
+SILVER_INTEGRADO = SILVER_DIR / "silver_integrado.csv"
 GOLD_DETECCIONES = GOLD_DIR / "gold_detecciones.csv"
 GOLD_RESUMEN = GOLD_DIR / "gold_resumen_diario.csv"
+GOLD_FINAL = GOLD_DIR / "gold_final.csv"
 
 
 def cargar_config(path: Path = CONFIG_FILE) -> dict:

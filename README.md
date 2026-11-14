@@ -1,18 +1,25 @@
-# Laboratorio 2 — Pipeline ETL Medallion de incendios forestales con Apache Airflow
+# Laboratorio 2 — Green Data: pipeline ETL Medallion de incendios forestales con Apache Airflow
 
 **Curso:** Gestión de Proyectos de IA — Universidad Autónoma de Occidente
-**Fuente de datos:** NASA FIRMS (Fire Information for Resource Management System), parte de [NASA Earthdata](https://www.earthdata.nasa.gov/data/tools/firms)
+**Tema:** Green Data · **Entrega:** 21 de noviembre de 2026
 
-Este laboratorio retoma el flujo del Laboratorio 1 (CRISP-DM + TDSP + Scrum ML), con dos cambios:
+Pipeline ETL en Python con arquitectura Medallion, orquestado con Apache Airflow, que **integra dos fuentes**:
 
-1. **Los datos vienen de una API**: detecciones de incendios activos del sensor VIIRS (satélite NOAA-20) sobre Sudamérica, no de un archivo estático.
-2. **Apache Airflow orquesta el pipeline**: corre en Docker sobre WSL2 y sigue la arquitectura Medallion **Bronze → Silver → Gold → Almacén de datos**. Al final se entrena el modelo.
+| Fuente | Tipo | Contenido |
+|---|---|---|
+| [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/api/) (NASA Earthdata) | **API REST** (`requests`) | Incendios activos detectados por el sensor VIIRS (satélite NOAA-20) en Sudamérica |
+| [Banco Mundial — Área de bosque](https://data.worldbank.org/indicator/AG.LND.FRST.K2) | **Archivo Excel** (`pandas`) | Área de bosque por país en km² (indicador `AG.LND.FRST.K2`) |
+| [Natural Earth](https://www.naturalearthdata.com/) (apoyo) | GeoJSON | Límites de países, para asignar el país de cada incendio |
+
+Las dos fuentes se **unen con un JOIN por país** en la capa Silver. La capa Gold produce **`gold_final.csv` con KPIs de negocio por país**, por ejemplo las detecciones de incendio por cada 1.000 km² de bosque. También se mantiene el flujo del Laboratorio 1 (CRISP-DM + TDSP + Scrum ML): al final se entrena un modelo.
 
 ```
 Windows ─► WSL2 ─► Docker Desktop ─► Apache Airflow 3.3.2 ─► DAG incendios_firms_medallion
 
-extraer_firms ─► validar_bronze ─► transformar_a_silver ─► integrar_a_gold ─► cargar_datawarehouse ─► entrenar_modelo
-   (API)          (calidad)          (limpieza/dedup)       (features/agreg.)     (SQLite estrella)        (LR vs RF)
+extraer_firms ─────────┐
+  (API REST)           ├─► validar_bronze ─► transformar_a_silver ─► integrar_a_gold ─► cargar_datawarehouse ─► entrenar_modelo
+extraer_excel_bosque ──┘     (calidad)       (limpieza + JOIN)      (KPIs, gold_final)   (SQLite estrella)       (LR vs RF)
+  (Excel)
 ```
 
 ## Estructura
@@ -20,15 +27,16 @@ extraer_firms ─► validar_bronze ─► transformar_a_silver ─► integrar_
 ```
 laboratorio-2/
 ├── incendios_etl/                 # Proyecto ETL + ML (equivale a "medallon" en la guía)
-│   ├── config/config.yaml         # fuente, región, reglas de calidad, parámetros del modelo
+│   ├── config/config.yaml         # fuentes, región, reglas de calidad, parámetros del modelo
 │   ├── data/
-│   │   ├── bronze/                # snapshots crudos de la API (inmutables, uno por ejecución)
-│   │   ├── silver/                # detecciones limpias y sin duplicados
-│   │   ├── gold/                  # detecciones con variables derivadas + resumen diario por celda
+│   │   ├── referencia/            # Excel de bosque (respaldo) y límites de países
+│   │   ├── bronze/                # datos originales: snapshots de la API y Excel descargado
+│   │   ├── silver/                # detecciones limpias, bosque limpio y silver_integrado (JOIN)
+│   │   ├── gold/                  # gold_final.csv (KPIs por país), detecciones y resumen diario
 │   │   └── warehouse/             # incendios_dw.db (SQLite)
 │   ├── src/
-│   │   ├── extract/extract_firms.py
-│   │   ├── transform/{validate_bronze,clean_firms,gold_data,eda}.py
+│   │   ├── extract/{extract_firms,extract_excel}.py
+│   │   ├── transform/{validate_bronze,clean_firms,integrar_fuentes,gold_data,eda}.py
 │   │   ├── load/load_datawarehouse.py
 │   │   ├── model/train.py
 │   │   └── pipeline.py            # una función por etapa (la usan main.py y el DAG)
@@ -90,14 +98,36 @@ El pipeline usa la **API de área de FIRMS**, que requiere una clave gratuita (*
 
 | | |
 |---|---|
-| Fuentes integradas | API de área de FIRMS (con MAP_KEY) + feed público de 7 días |
-| Detecciones únicas (7–14 nov 2026) | **64.515** en Sudamérica, de ellas 1.805 en Colombia |
-| Ejecuciones del DAG | 7 (6 manuales + 1 programada), todas `success` |
-| Almacén | `fact_detecciones` 64.515 · `dim_fecha` 8 · `agg_diario_celda` 4.737 |
-| Regresión logística (baseline) | F1 macro **0,693** · accuracy 0,702 |
-| Random Forest | F1 macro **0,937** · accuracy 0,975 · CV 0,937 ± 0,003 |
+| Fuentes integradas | API REST de FIRMS + Excel del Banco Mundial (JOIN por país) |
+| Detecciones únicas (7–14 nov 2026) | **65.734** en Sudamérica, de ellas 1.026 en Colombia |
+| Cobertura del JOIN | 64.781 detecciones (98,5 %) con dato de bosque; el resto cae en el mar, Guayana Francesa o Centroamérica |
+| Ejecuciones del DAG | 9 (8 manuales + 1 programada), todas `success` |
+| Almacén | `fact_detecciones` 65.734 · `dim_pais` 12 · `kpi_pais` 12 · `dim_fecha` 8 · `agg_diario_celda` 4.836 |
+| Regresión logística (baseline) | F1 macro **0,692** · accuracy 0,701 |
+| Random Forest | F1 macro **0,940** · accuracy 0,977 · CV 0,938 ± 0,002 |
 | Modelo recomendado | **Random Forest** (+0,24 F1, supera el margen mínimo de 0,01) |
 | Reproducibilidad | Mismos datos → misma tabla Silver y mismas métricas en cada ejecución |
+
+### KPIs por país (`gold_final.csv`)
+
+| # | País | Bosque (km²) | Detecciones | Detecciones / 1.000 km² bosque | FRP / 1.000 km² bosque (MW) | % del total |
+|---|---|---|---|---|---|---|
+| 1 | Guyana | 183.772 | 3.897 | **21,21** | 180,6 | 6,0 |
+| 2 | Paraguay | 142.974 | 2.477 | **17,32** | 231,3 | 3,8 |
+| 3 | Argentina | 465.980 | 6.516 | 13,98 | 198,5 | 10,1 |
+| 4 | Bolivia | 543.703 | 6.529 | 12,01 | 118,2 | 10,1 |
+| 5 | Venezuela | 470.882 | 4.307 | 9,15 | 67,4 | 6,7 |
+| 6 | Brasil | 4.860.866 | 37.191 | 7,65 | 75,5 | **57,4** |
+| 7 | Surinam | 146.742 | 1.048 | 7,14 | 54,2 | 1,6 |
+| 8 | Chile | 181.619 | 495 | 2,73 | 18,9 | 0,8 |
+| 9 | Perú | 671.598 | 1.185 | 1,76 | 22,8 | 1,8 |
+| 10 | **Colombia** | 594.569 | 1.026 | 1,73 | 10,4 | 1,6 |
+| 11 | Uruguay | 20.240 | 19 | 0,94 | 5,8 | 0,03 |
+| 12 | Ecuador | 123.103 | 91 | 0,74 | 4,2 | 0,1 |
+
+Brasil concentra el 57 % de las detecciones. Sin embargo, al relativizar por su área de bosque, **Guyana y Paraguay** sufren la mayor presión del fuego. Colombia está entre los países con menor presión de la semana.
+
+![KPIs por país](incendios_etl/outputs/reports/figures/kpis_pais.png)
 
 El análisis completo está en [docs/reporte_final.md](docs/reporte_final.md).
 
