@@ -22,6 +22,23 @@ extraer_excel_bosque ──┘     (calidad)       (limpieza + JOIN)      (KPIs,
   (Excel)
 ```
 
+## Cumplimiento del enunciado
+
+| Requisito | Dónde se cumple |
+|---|---|
+| Extraer información desde una **API REST** | [`extract_firms.py`](incendios_etl/src/extract/extract_firms.py) — tarea `extraer_firms` |
+| Leer un **archivo Excel/CSV** | [`extract_excel.py`](incendios_etl/src/extract/extract_excel.py) — tarea `extraer_excel_bosque` |
+| **Bronze:** conservar los datos originales sin modificar | `incendios_etl/data/bronze/`: cada descarga se guarda tal cual, con su origen y la fecha y hora en el nombre |
+| **Silver:** eliminar duplicados y tratar nulos | [`clean_firms.py`](incendios_etl/src/transform/clean_firms.py), [`integrar_fuentes.py`](incendios_etl/src/transform/integrar_fuentes.py) |
+| **Silver:** normalizar tipos de datos y formatos | Confianza `l/n/h` y `low/nominal/high` → `baja/nominal/alta`; fecha y hora UTC; Excel de ancho a largo; códigos ISO3 |
+| **Silver:** validar calidad | [`validate_bronze.py`](incendios_etl/src/transform/validate_bronze.py) — tarea `validar_bronze` (API y Excel) |
+| **Silver:** integrar ambas fuentes con **JOIN** | [`integrar_fuentes.py`](incendios_etl/src/transform/integrar_fuentes.py) → `unir_fuentes`: LEFT JOIN por `pais_iso3` |
+| **Gold:** dataset integrado e **indicadores de negocio** | [`gold_data.py`](incendios_etl/src/transform/gold_data.py) → [`gold_final.csv`](incendios_etl/data/gold/gold_final.csv) |
+| **Orquestación** | [`incendios_etl_dag.py`](airflow-incendios/dags/incendios_etl_dag.py) — Apache Airflow 3.3.2 en Docker |
+| **Supervisión de logs** | Logs de cada tarea en la interfaz de Airflow (Task → Logs); ver la sección 6 del [reporte](docs/reporte_final.md) |
+| **Entrega:** Gold + KPIs + código Python + evidencias | `gold_final.csv`, este repositorio, [reporte final](docs/reporte_final.md) con las ejecuciones del DAG, figuras en `incendios_etl/outputs/reports/` |
+| **Tema Green Data** | Incendios forestales × área de bosque por país |
+
 ## Estructura
 
 ```
