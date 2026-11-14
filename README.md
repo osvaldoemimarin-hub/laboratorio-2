@@ -97,7 +97,7 @@ Sin clave, la extracción usa el **feed público de 7 días** (no requiere regis
 | Random Forest | F1 macro **0,936** · accuracy 0,975 · CV 0,937 ± 0,004 |
 | Modelo recomendado | **Random Forest** (+0,24 F1, supera el margen mínimo de 0,01) |
 
-El análisis completo está en [docs/reporte_final.md](docs/reporte_final.md).
+El análisis completo está en [docs/reporte_final.md](docs/reporte_final.md) y la bitácora de trabajo en [docs/bitacora_laboratorio_2.docx](docs/bitacora_laboratorio_2.docx).
 
 ## Equipo y roles Scrum
 
