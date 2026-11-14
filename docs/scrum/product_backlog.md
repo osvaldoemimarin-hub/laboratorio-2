@@ -1,6 +1,12 @@
 # Product Backlog: Laboratorio 2 (Incendios NASA FIRMS + Airflow)
 
-**Product Owner:** Nilson Jacobo Gonzales · **Scrum Master:** Osvaldo Emilio Marin · **Data Engineer:** Edgar Adrian Ortiz
+| Rol | Integrante | Responsabilidades |
+|---|---|---|
+| Product Owner | Edgar Adrian Ortiz | Define objetivos, prioriza el backlog, valida la entrega final |
+| Scrum Master | Osvaldo Emilio Marin | Coordina reuniones, mantiene el tablero, README y flujo Git |
+| Data Engineer / Analyst | Nilson Jacobo Gonzales | Descarga, calidad, limpieza y EDA |
+| ML Engineer | Juan Andrés Ruiz | Entrenamiento, evaluación y despliegue del modelo |
+
 
 **Visión:** disponer de un pipeline diario y automático que convierta las detecciones satelitales de incendios de NASA en datos confiables y consultables, con un modelo que explique su nivel de confianza.
 
