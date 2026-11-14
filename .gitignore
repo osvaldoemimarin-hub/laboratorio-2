@@ -25,3 +25,6 @@ airflow-incendios/config/airflow.cfg
 
 # Material del curso (copia de un artículo de terceros)
 instruciones_lab_2.pdf
+
+# Bitácora de trabajo (uso interno, no se publica)
+docs/bitacora_laboratorio_2.docx
