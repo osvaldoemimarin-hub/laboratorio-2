@@ -44,6 +44,18 @@ def test_unir_snapshots_no_duplica_entre_descargas():
     assert len(unir_snapshots([b, b])) == len(limpieza_data(b))
 
 
+def test_silver_es_reproducible_sin_importar_el_orden():
+    b = bronze_ejemplo()
+    # Dos detecciones distintas con la misma fecha y hora (el caso que antes desordenaba Silver)
+    extra = b.iloc[[2]].assign(latitude=-10.3, longitude=-55.4)
+    base = pd.concat([b, extra], ignore_index=True)
+    esperado = limpieza_data(base)
+    for semilla in range(5):
+        revuelto = base.sample(frac=1, random_state=semilla).reset_index(drop=True)
+        pd.testing.assert_frame_equal(limpieza_data(revuelto), esperado)
+    pd.testing.assert_frame_equal(unir_snapshots([extra, b]), unir_snapshots([b, extra]))
+
+
 def test_gold_agrega_por_celda_y_marca_region():
     gold = integrar_datos(limpieza_data(bronze_ejemplo()), CFG)
     det, res = gold["detecciones"], gold["resumen_diario"]

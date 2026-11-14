@@ -11,6 +11,7 @@ Una historia se considera terminada cuando cumple **todas** estas condiciones:
 **Calidad**
 - [x] Las pruebas pasan: `python -m pytest -q tests`.
 - [x] Volver a ejecutar el pipeline no duplica datos (idempotencia).
+- [x] Los mismos datos producen siempre la misma tabla Silver y las mismas métricas (reproducibilidad).
 - [x] La validación de Bronze detiene el DAG si los datos llegan mal.
 
 **Orquestación**

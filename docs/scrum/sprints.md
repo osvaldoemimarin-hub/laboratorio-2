@@ -43,7 +43,7 @@
 | `docker-compose.yaml` oficial 3.3.2 + `build: .` + montaje del proyecto | PB-08 | Osvaldo | Imagen `airflow-incendios:3.3.2` |
 | DAG `incendios_firms_medallion` (6 tareas, reintentos) | PB-08 | Osvaldo | Sin errores de importación |
 | Programación diaria a las 06:00 UTC | PB-09 | Osvaldo | La ejecución programada corrió con éxito |
-| Pruebas con pytest | PB-10 | Nilson / Juan Andrés | 6/6 aprobadas |
+| Pruebas con pytest | PB-10 | Nilson / Juan Andrés | 7/7 aprobadas (incluye reproducibilidad de Silver) |
 | README, reporte final y artefactos Scrum | PB-11 | Osvaldo / equipo | `docs/` |
 
 **Sprint review:** 4 ejecuciones del DAG, todas en `success`. Bronze acumuló 4 snapshots y Silver se mantuvo en 61.689 detecciones únicas: se confirma la idempotencia. El incremento queda aceptado.

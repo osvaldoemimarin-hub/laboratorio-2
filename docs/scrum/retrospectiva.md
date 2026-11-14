@@ -15,4 +15,5 @@
 ## Acciones para el próximo sprint
 1. Fijar versiones exactas de dependencias en `requirements.txt` y `requirements-airflow.txt`.
 2. ~~Solicitar la `FIRMS_MAP_KEY`~~ (hecho). Pendiente: ampliar la ventana histórica con consultas por fecha a la API.
-3. Implementar PB-13 (persistencia del fuego) usando el resumen diario por celda de la capa Gold.
+3. ~~Hacer reproducible la partición del modelo~~ (hecho: Silver ordenado por `id_deteccion`).
+4. Implementar PB-13 (persistencia del fuego) usando el resumen diario por celda de la capa Gold.

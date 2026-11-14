@@ -54,11 +54,11 @@ El proyecto tiene dos objetivos:
 |---|---|---|
 | **Bronze** | Cada descarga se guarda tal cual en un CSV con su origen y la fecha y hora en el nombre (`firms_viirs_noaa20_api_20261114T204310Z.csv`, `firms_viirs_noaa20_feed_…csv`). Nunca se modifica. | `src/extract/extract_firms.py` |
 | *Validación* | Columnas requeridas, mínimo 100 filas, coordenadas en rango. Si falla, el DAG se detiene y no contamina las capas siguientes. | `src/transform/validate_bronze.py` |
-| **Silver** | Une **todos** los snapshots de Bronze; normaliza la confianza (`l/n/h` de la API y `low/nominal/high` del feed → `baja/nominal/alta`), construye `fecha_hora_utc`, renombra al español, elimina nulos y valores imposibles, y **deduplica** con la llave `(lat, lon, fecha_hora, satélite)`. | `src/transform/clean_firms.py` |
+| **Silver** | Une **todos** los snapshots de Bronze; normaliza la confianza (`l/n/h` de la API y `low/nominal/high` del feed → `baja/nominal/alta`), construye `fecha_hora_utc`, renombra al español, elimina nulos y valores imposibles, y **deduplica** con la llave `(lat, lon, fecha_hora, satélite)`. Al final ordena las filas por `id_deteccion`, de modo que los mismos datos producen siempre la misma tabla. | `src/transform/clean_firms.py` |
 | **Gold** | Variables derivadas (`dif_brillo = I4 − I5`, `hora_utc`, `es_noche`, celda de 1° × 1°, `en_region_interes`) y resumen diario por celda (número de detecciones, FRP total, medio y máximo, % de confianza alta). | `src/transform/gold_data.py` |
 | **Almacén** | SQLite con modelo en estrella: `fact_detecciones`, `dim_fecha` y `agg_diario_celda`, con índices por fecha y celda. | `src/load/load_datawarehouse.py` |
 
-**Prueba de idempotencia e integración de fuentes:** el DAG corrió 6 veces. En las 4 primeras (feed público) Bronze acumuló 4 snapshots de 61.689 filas y Silver se mantuvo en **61.689 detecciones únicas**: volver a ejecutar el pipeline no infla los datos. En la quinta se activó la API, que aportó 35.958 filas de los últimos 5 días. Silver pasó a **64.515** detecciones únicas: solo se agregaron las detecciones realmente nuevas. Una sexta ejecución con la API trajo las mismas 35.958 filas y Silver no cambió (≈ 318 mil filas en Bronze → 64.515 en Silver).
+**Prueba de idempotencia e integración de fuentes:** el DAG corrió 7 veces. En las 4 primeras (feed público) Bronze acumuló 4 snapshots de 61.689 filas y Silver se mantuvo en **61.689 detecciones únicas**: volver a ejecutar el pipeline no infla los datos. En la quinta se activó la API, que aportó 35.958 filas de los últimos 5 días. Silver pasó a **64.515** detecciones únicas: solo se agregaron las detecciones realmente nuevas. Las ejecuciones sexta y séptima trajeron de la API las mismas 35.958 filas y Silver no cambió (≈ 355 mil filas en Bronze → 64.515 en Silver).
 
 **Partición para el modelo:** 80/20 estratificada con `random_state=42`, es decir, 51.612 detecciones para entrenamiento y 12.903 para prueba. El escalado va dentro de un `Pipeline`, sin fuga de información.
 
@@ -77,33 +77,33 @@ El proyecto tiene dos objetivos:
 
 | Modelo | Accuracy | F1 macro | CV F1 macro (3 folds) |
 |---|---|---|---|
-| Regresión logística | 0,702 | 0,695 | 0,692 ± 0,003 |
-| **Random Forest** | **0,972** | **0,931** | **0,937 ± 0,001** |
+| Regresión logística | 0,702 | 0,693 | 0,693 ± 0,001 |
+| **Random Forest** | **0,975** | **0,937** | **0,937 ± 0,003** |
 
 ### Métricas por clase (precisión / recall / F1)
 
 | Clase | Regresión logística | Random Forest |
 |---|---|---|
-| baja | 0,18 / 0,88 / 0,30 | 0,77 / 0,89 / **0,82** |
-| nominal | 0,99 / 0,67 / 0,80 | 0,99 / 0,98 / **0,99** |
-| alta | 0,97 / 1,00 / 0,98 | 0,98 / 0,99 / **0,99** |
+| baja | 0,18 / 0,87 / 0,30 | 0,79 / 0,89 / **0,84** |
+| nominal | 0,99 / 0,68 / 0,80 | 0,99 / 0,98 / **0,99** |
+| alta | 0,96 / 1,00 / 0,98 | 0,99 / 0,99 / **0,99** |
 
-> **Variabilidad entre ejecuciones:** con los mismos 64.515 registros, el F1 macro del Random Forest osciló entre 0,931 y 0,935 en distintas ejecuciones del DAG. La causa es que el orden de las filas de Silver no es fijo cuando varias detecciones comparten fecha y hora, y eso cambia la partición train/test. La validación cruzada (0,937 ± 0,001) es la referencia más estable. Una mejora pendiente es ordenar Silver por `id_deteccion` para que cada ejecución sea exactamente reproducible.
+> **Reproducibilidad:** en las primeras ejecuciones el F1 macro del Random Forest variaba entre 0,931 y 0,935 con los mismos datos. La causa era que el orden de las filas de Silver no era fijo cuando varias detecciones compartían fecha y hora, y eso cambiaba la partición train/test. Se corrigió ordenando Silver por `id_deteccion` y se agregó una prueba automática. Al procesar dos veces los mismos datos en el contenedor de Airflow, la tabla Silver salió idéntica byte a byte y las métricas también (RF 0,9372, LR 0,6926).
 
 ![Matrices de confusión](../incendios_etl/outputs/reports/figures/matrices_confusion.png)
 
 **Análisis de errores:**
 
-- **Regresión logística:** clasifica 3.732 detecciones nominales como "baja", lo que da una precisión de apenas 0,18 en esa clase. La frontera entre baja y nominal **no es lineal**: la confianza baja se concentra en una banda estrecha de `dif_brillo` (≈ 25–30 K) dentro de la nube nominal.
-- **Random Forest:** reduce esa confusión a 244 casos. Los errores restantes son casi todos **baja ↔ nominal** de día. La clase alta se acierta en el 99 % de los casos.
+- **Regresión logística:** clasifica 3.718 detecciones nominales como "baja", lo que da una precisión de apenas 0,18 en esa clase. La frontera entre baja y nominal **no es lineal**: la confianza baja se concentra en una banda estrecha de `dif_brillo` (≈ 25–30 K) dentro de la nube nominal.
+- **Random Forest:** reduce esa confusión a 217 casos. Los errores restantes son casi todos **baja ↔ nominal** de día. La clase alta se acierta en el 99 % de los casos.
 
 ![Importancia de variables](../incendios_etl/outputs/reports/figures/importancia_variables.png)
 
-Las variables más útiles son `brillo_ti4` (0,33), `dif_brillo` (0,27) y `brillo_ti5` (0,12). Las variables geográficas aportan poco (< 0,04 cada una).
+Las variables más útiles son `brillo_ti4` (0,32), `dif_brillo` (0,27) y `brillo_ti5` (0,12). Las variables geográficas aportan poco (< 0,04 cada una).
 
 ### Decisión
 
-El Random Forest supera al baseline por **+0,236 de F1 macro**, muy por encima del margen mínimo de 0,01. **Se recomienda el Random Forest.** Es el resultado opuesto al Laboratorio 1, donde el baseline empató con el modelo complejo. Aquí la relación entre variables y clase es claramente no lineal, y la complejidad adicional sí se justifica.
+El Random Forest supera al baseline por **+0,245 de F1 macro**, muy por encima del margen mínimo de 0,01. **Se recomienda el Random Forest.** Es el resultado opuesto al Laboratorio 1, donde el baseline empató con el modelo complejo. Aquí la relación entre variables y clase es claramente no lineal, y la complejidad adicional sí se justifica.
 
 ### Interpretación honesta
 
@@ -127,9 +127,10 @@ El nivel de confianza no es una etiqueta independiente, porque **lo calcula el p
 | `manual__2026-11-14T19:50:48` | manual | success |
 | `manual__2026-11-14T20:42:57` | manual, primera con API (MAP_KEY) | success |
 | `manual__2026-11-14T20:57:34` | manual, lanzada por el script de arranque | success |
+| `manual__2026-11-14T21:05:28` | manual, primera con orden reproducible | success |
 
 - Los modelos se guardan con `joblib` en `incendios_etl/outputs/models/` y las métricas en `outputs/reports/metricas_modelos.json`.
-- **Pruebas:** `tests/test_pipeline.py` tiene 6 pruebas, todas aprobadas. Cubren la limpieza, la deduplicación entre snapshots, la agregación Gold, la carga al almacén, la construcción de URL API/feed y el rechazo de respuestas inválidas de la API.
+- **Pruebas:** `tests/test_pipeline.py` tiene 7 pruebas, todas aprobadas. Cubren la limpieza, la deduplicación entre snapshots, la reproducibilidad de Silver sin importar el orden de entrada, la agregación Gold, la carga al almacén, la construcción de URL API/feed y el rechazo de respuestas inválidas de la API.
 
 ## 7. Limitaciones y trabajo futuro
 

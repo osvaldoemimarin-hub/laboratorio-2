@@ -41,8 +41,12 @@ def limpieza_data(df: pd.DataFrame) -> pd.DataFrame:
     df = df.dropna(subset=["latitud", "longitud", "brillo_ti4", "brillo_ti5", "frp", "confianza", "periodo"])
     df = df[(df["brillo_ti4"] > 0) & (df["brillo_ti5"] > 0) & (df["frp"] >= 0)]
 
-    # La misma detección puede venir en varios snapshots de Bronze.
-    df = df.sort_values("fecha_hora_utc").drop_duplicates(subset=LLAVE_NATURAL, keep="last")
+    # La misma detección puede venir en varios snapshots de Bronze. Se conserva la del
+    # último snapshot: el orden estable (mergesort) respeta el orden de llegada de las filas.
+    df = (
+        df.sort_values(LLAVE_NATURAL, kind="mergesort")
+        .drop_duplicates(subset=LLAVE_NATURAL, keep="last")
+    )
 
     df["id_deteccion"] = (
         df["satelite"].astype(str) + "_"
@@ -50,6 +54,9 @@ def limpieza_data(df: pd.DataFrame) -> pd.DataFrame:
         + df["latitud"].round(5).astype(str) + "_"
         + df["longitud"].round(5).astype(str)
     )
+    # Orden fijo y único: el mismo conjunto de detecciones produce siempre la misma tabla
+    # Silver, y por tanto la misma partición train/test y las mismas métricas.
+    df = df.sort_values(["id_deteccion"] + LLAVE_NATURAL, kind="mergesort")
     return df[COLUMNAS_SILVER].reset_index(drop=True)
 
 
