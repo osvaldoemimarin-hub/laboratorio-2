@@ -58,7 +58,7 @@ El proyecto tiene dos objetivos:
 | **Gold** | Variables derivadas (`dif_brillo = I4 − I5`, `hora_utc`, `es_noche`, celda de 1° × 1°, `en_region_interes`) y resumen diario por celda (número de detecciones, FRP total, medio y máximo, % de confianza alta). | `src/transform/gold_data.py` |
 | **Almacén** | SQLite con modelo en estrella: `fact_detecciones`, `dim_fecha` y `agg_diario_celda`, con índices por fecha y celda. | `src/load/load_datawarehouse.py` |
 
-**Prueba de idempotencia e integración de fuentes:** el DAG corrió 5 veces. En las 4 primeras (feed público) Bronze acumuló 4 snapshots de 61.689 filas y Silver se mantuvo en **61.689 detecciones únicas**: volver a ejecutar el pipeline no infla los datos. En la quinta se activó la API, que aportó 35.958 filas de los últimos 5 días. Silver pasó a **64.515** detecciones únicas: solo se agregaron las detecciones realmente nuevas (≈ 282 mil filas en Bronze → 64.515 en Silver).
+**Prueba de idempotencia e integración de fuentes:** el DAG corrió 6 veces. En las 4 primeras (feed público) Bronze acumuló 4 snapshots de 61.689 filas y Silver se mantuvo en **61.689 detecciones únicas**: volver a ejecutar el pipeline no infla los datos. En la quinta se activó la API, que aportó 35.958 filas de los últimos 5 días. Silver pasó a **64.515** detecciones únicas: solo se agregaron las detecciones realmente nuevas. Una sexta ejecución con la API trajo las mismas 35.958 filas y Silver no cambió (≈ 318 mil filas en Bronze → 64.515 en Silver).
 
 **Partición para el modelo:** 80/20 estratificada con `random_state=42`, es decir, 51.612 detecciones para entrenamiento y 12.903 para prueba. El escalado va dentro de un `Pipeline`, sin fuga de información.
 
@@ -77,31 +77,33 @@ El proyecto tiene dos objetivos:
 
 | Modelo | Accuracy | F1 macro | CV F1 macro (3 folds) |
 |---|---|---|---|
-| Regresión logística | 0,702 | 0,690 | 0,693 ± 0,002 |
-| **Random Forest** | **0,975** | **0,935** | **0,936 ± 0,002** |
+| Regresión logística | 0,702 | 0,695 | 0,692 ± 0,003 |
+| **Random Forest** | **0,972** | **0,931** | **0,937 ± 0,001** |
 
 ### Métricas por clase (precisión / recall / F1)
 
 | Clase | Regresión logística | Random Forest |
 |---|---|---|
-| baja | 0,18 / 0,87 / 0,30 | 0,79 / 0,90 / **0,84** |
-| nominal | 0,99 / 0,68 / 0,80 | 0,99 / 0,98 / **0,99** |
-| alta | 0,95 / 0,99 / 0,97 | 0,98 / 0,98 / **0,98** |
+| baja | 0,18 / 0,88 / 0,30 | 0,77 / 0,89 / **0,82** |
+| nominal | 0,99 / 0,67 / 0,80 | 0,99 / 0,98 / **0,99** |
+| alta | 0,97 / 1,00 / 0,98 | 0,98 / 0,99 / **0,99** |
+
+> **Variabilidad entre ejecuciones:** con los mismos 64.515 registros, el F1 macro del Random Forest osciló entre 0,931 y 0,935 en distintas ejecuciones del DAG. La causa es que el orden de las filas de Silver no es fijo cuando varias detecciones comparten fecha y hora, y eso cambia la partición train/test. La validación cruzada (0,937 ± 0,001) es la referencia más estable. Una mejora pendiente es ordenar Silver por `id_deteccion` para que cada ejecución sea exactamente reproducible.
 
 ![Matrices de confusión](../incendios_etl/outputs/reports/figures/matrices_confusion.png)
 
 **Análisis de errores:**
 
-- **Regresión logística:** clasifica 3.729 detecciones nominales como "baja", lo que da una precisión de apenas 0,18 en esa clase. La frontera entre baja y nominal **no es lineal**: la confianza baja se concentra en una banda estrecha de `dif_brillo` (≈ 25–30 K) dentro de la nube nominal.
-- **Random Forest:** reduce esa confusión a 218 casos. Los errores restantes son casi todos **baja ↔ nominal** de día. La clase alta se acierta en el 98 % de los casos.
+- **Regresión logística:** clasifica 3.732 detecciones nominales como "baja", lo que da una precisión de apenas 0,18 en esa clase. La frontera entre baja y nominal **no es lineal**: la confianza baja se concentra en una banda estrecha de `dif_brillo` (≈ 25–30 K) dentro de la nube nominal.
+- **Random Forest:** reduce esa confusión a 244 casos. Los errores restantes son casi todos **baja ↔ nominal** de día. La clase alta se acierta en el 99 % de los casos.
 
 ![Importancia de variables](../incendios_etl/outputs/reports/figures/importancia_variables.png)
 
-Las variables más útiles son `brillo_ti4` (0,33), `dif_brillo` (0,27) y `brillo_ti5` (0,11). Las variables geográficas aportan poco (< 0,04 cada una).
+Las variables más útiles son `brillo_ti4` (0,33), `dif_brillo` (0,27) y `brillo_ti5` (0,12). Las variables geográficas aportan poco (< 0,04 cada una).
 
 ### Decisión
 
-El Random Forest supera al baseline por **+0,245 de F1 macro**, muy por encima del margen mínimo de 0,01. **Se recomienda el Random Forest.** Es el resultado opuesto al Laboratorio 1, donde el baseline empató con el modelo complejo. Aquí la relación entre variables y clase es claramente no lineal, y la complejidad adicional sí se justifica.
+El Random Forest supera al baseline por **+0,236 de F1 macro**, muy por encima del margen mínimo de 0,01. **Se recomienda el Random Forest.** Es el resultado opuesto al Laboratorio 1, donde el baseline empató con el modelo complejo. Aquí la relación entre variables y clase es claramente no lineal, y la complejidad adicional sí se justifica.
 
 ### Interpretación honesta
 
@@ -124,6 +126,7 @@ El nivel de confianza no es una etiqueta independiente, porque **lo calcula el p
 | `scheduled__2026-11-14T06:00:00` | programada | success |
 | `manual__2026-11-14T19:50:48` | manual | success |
 | `manual__2026-11-14T20:42:57` | manual, primera con API (MAP_KEY) | success |
+| `manual__2026-11-14T20:57:34` | manual, lanzada por el script de arranque | success |
 
 - Los modelos se guardan con `joblib` en `incendios_etl/outputs/models/` y las métricas en `outputs/reports/metricas_modelos.json`.
 - **Pruebas:** `tests/test_pipeline.py` tiene 6 pruebas, todas aprobadas. Cubren la limpieza, la deduplicación entre snapshots, la agregación Gold, la carga al almacén, la construcción de URL API/feed y el rechazo de respuestas inválidas de la API.

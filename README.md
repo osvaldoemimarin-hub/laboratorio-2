@@ -92,10 +92,10 @@ El pipeline usa la **API de área de FIRMS**, que requiere una clave gratuita (*
 |---|---|
 | Fuentes integradas | API de área de FIRMS (con MAP_KEY) + feed público de 7 días |
 | Detecciones únicas (7–14 nov 2026) | **64.515** en Sudamérica, de ellas 1.805 en Colombia |
-| Ejecuciones del DAG | 5 (4 manuales + 1 programada), todas `success` |
+| Ejecuciones del DAG | 6 (5 manuales + 1 programada), todas `success` |
 | Almacén | `fact_detecciones` 64.515 · `dim_fecha` 8 · `agg_diario_celda` 4.737 |
-| Regresión logística (baseline) | F1 macro **0,690** · accuracy 0,702 |
-| Random Forest | F1 macro **0,935** · accuracy 0,975 · CV 0,936 ± 0,002 |
+| Regresión logística (baseline) | F1 macro **0,695** · accuracy 0,702 |
+| Random Forest | F1 macro **0,931** · accuracy 0,972 · CV 0,937 ± 0,001 |
 | Modelo recomendado | **Random Forest** (+0,24 F1, supera el margen mínimo de 0,01) |
 
 El análisis completo está en [docs/reporte_final.md](docs/reporte_final.md).
