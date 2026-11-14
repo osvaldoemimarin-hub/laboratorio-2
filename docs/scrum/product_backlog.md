@@ -1,0 +1,23 @@
+# Product Backlog: Laboratorio 2 (Incendios NASA FIRMS + Airflow)
+
+**Product Owner:** Nilson Jacobo Gonzales · **Scrum Master:** Osvaldo Emilio Marin · **Data Engineer:** Edgar Adrian Ortiz
+
+**Visión:** disponer de un pipeline diario y automático que convierta las detecciones satelitales de incendios de NASA en datos confiables y consultables, con un modelo que explique su nivel de confianza.
+
+| ID | Historia de usuario | Prioridad | Puntos | Sprint | Estado |
+|---|---|---|---|---|---|
+| PB-00 | Como equipo, quiero un repositorio con estructura Medallion + TDSP para trabajar ordenados | Alta | 2 | 1 | Hecho |
+| PB-01 | Como analista, quiero descargar automáticamente las detecciones de FIRMS (API o feed público) para no hacerlo a mano | Alta | 5 | 1 | Hecho |
+| PB-02 | Como analista, quiero que cada descarga quede guardada sin cambios (Bronze) para poder auditarla | Alta | 2 | 1 | Hecho |
+| PB-03 | Como analista, quiero que el pipeline se detenga si los datos llegan mal (validación) para no contaminar el almacén | Alta | 3 | 1 | Hecho |
+| PB-04 | Como analista, quiero datos limpios y sin duplicados entre descargas (Silver) | Alta | 5 | 2 | Hecho |
+| PB-05 | Como analista, quiero variables derivadas y resúmenes por celda y día (Gold) | Media | 5 | 2 | Hecho |
+| PB-06 | Como usuario de BI, quiero consultar los datos en un almacén con modelo en estrella | Media | 3 | 2 | Hecho |
+| PB-07 | Como PO, quiero un modelo baseline y uno alternativo comparados con F1 macro | Media | 5 | 2 | Hecho |
+| PB-08 | Como equipo, quiero Airflow en Docker/WSL2 orquestando todas las etapas con reintentos y logs | Alta | 8 | 3 | Hecho |
+| PB-09 | Como PO, quiero que el pipeline corra solo todos los días | Media | 1 | 3 | Hecho |
+| PB-10 | Como equipo, quiero pruebas automáticas del pipeline | Media | 3 | 3 | Hecho |
+| PB-11 | Como PO, quiero un reporte final y la documentación para reproducir el proyecto | Media | 3 | 3 | Hecho |
+| PB-12 | Como analista, quiero el polígono oficial de Colombia en lugar de una caja aproximada | Baja | 3 | — | Pendiente |
+| PB-13 | Como PO, quiero predecir la persistencia del fuego por celda (objetivo con valor real) | Baja | 8 | — | Pendiente |
+| PB-14 | Como equipo, quiero cargar el almacén en PostgreSQL usando una Connection de Airflow | Baja | 5 | — | Pendiente |

@@ -1,0 +1,46 @@
+# Configuración del pipeline de incendios forestales (NASA FIRMS / Earthdata)
+
+fuente:
+  # Producto VIIRS del satélite NOAA-20 en tiempo casi real (resolución 375 m)
+  sensor_api: VIIRS_NOAA20_NRT
+  # Feed público (no requiere clave): últimos 7 días, Sudamérica
+  url_publica: https://firms.modaps.eosdis.nasa.gov/data/active_fire/noaa-20-viirs-c2/csv/J1_VIIRS_C2_South_America_7d.csv
+  # API de área (requiere FIRMS_MAP_KEY): {key}/{sensor}/{bbox}/{dias}
+  url_api: https://firms.modaps.eosdis.nasa.gov/api/area/csv/{key}/{sensor}/{bbox}/{dias}
+  # Caja de Sudamérica: oeste,sur,este,norte
+  bbox: "-82,-56,-34,13"
+  dias: 5            # la API permite de 1 a 5 días por consulta
+  timeout_s: 120
+
+region_interes:
+  nombre: Colombia
+  # Caja aproximada de Colombia continental: lat_min, lat_max, lon_min, lon_max
+  lat_min: -4.3
+  lat_max: 13.5
+  lon_min: -79.1
+  lon_max: -66.8
+
+calidad:
+  min_filas_bronze: 100
+  columnas_requeridas:
+    - latitude
+    - longitude
+    - bright_ti4
+    - scan
+    - track
+    - acq_date
+    - acq_time
+    - satellite
+    - confidence
+    - bright_ti5
+    - frp
+    - daynight
+
+modelo:
+  objetivo: confianza
+  semilla: 42
+  test_size: 0.2
+  cv_folds: 3
+  # Si el modelo complejo no supera al baseline por al menos este margen de F1 macro,
+  # se recomienda el baseline (regla "preferir el modelo más simple" del Lab 1).
+  margen_minimo_f1: 0.01

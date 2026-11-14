@@ -1,0 +1,117 @@
+{
+  "fecha_entrenamiento_utc": "2026-11-14T19:51:25+00:00",
+  "n_registros": 61689,
+  "n_train": 49351,
+  "n_test": 12338,
+  "distribucion_clases": {
+    "nominal": 54913,
+    "baja": 4378,
+    "alta": 2398
+  },
+  "features": [
+    "brillo_ti4",
+    "brillo_ti5",
+    "dif_brillo",
+    "frp",
+    "scan",
+    "track",
+    "es_noche",
+    "hora_utc",
+    "latitud",
+    "longitud"
+  ],
+  "modelos": {
+    "logistic_regression": {
+      "accuracy": 0.7077,
+      "f1_macro": 0.6969,
+      "cv_f1_macro_media": 0.6924,
+      "cv_f1_macro_std": 0.0009,
+      "reporte": {
+        "baja": {
+          "precision": 0.18236799255640845,
+          "recall": 0.8949771689497716,
+          "f1-score": 0.3029951690821256,
+          "support": 876.0
+        },
+        "nominal": {
+          "precision": 0.9900583244962884,
+          "recall": 0.680050987890376,
+          "f1-score": 0.806282722513089,
+          "support": 10983.0
+        },
+        "alta": {
+          "precision": 0.9656565656565657,
+          "recall": 0.9979123173277662,
+          "f1-score": 0.9815195071868583,
+          "support": 479.0
+        },
+        "accuracy": 0.707651159020911,
+        "macro avg": {
+          "precision": 0.7126942942364208,
+          "recall": 0.857646824722638,
+          "f1-score": 0.6969324662606909,
+          "support": 12338.0
+        },
+        "weighted avg": {
+          "precision": 0.931764826906439,
+          "recall": 0.707651159020911,
+          "f1-score": 0.7773524682622549,
+          "support": 12338.0
+        }
+      }
+    },
+    "random_forest": {
+      "accuracy": 0.9745,
+      "f1_macro": 0.936,
+      "cv_f1_macro_media": 0.9365,
+      "cv_f1_macro_std": 0.0044,
+      "reporte": {
+        "baja": {
+          "precision": 0.7731256085686465,
+          "recall": 0.906392694063927,
+          "f1-score": 0.8344718864950079,
+          "support": 876.0
+        },
+        "nominal": {
+          "precision": 0.9931658662726265,
+          "recall": 0.9791495948283712,
+          "f1-score": 0.9861079271927009,
+          "support": 10983.0
+        },
+        "alta": {
+          "precision": 0.9834368530020704,
+          "recall": 0.9916492693110647,
+          "f1-score": 0.9875259875259875,
+          "support": 479.0
+        },
+        "accuracy": 0.9744691197925109,
+        "macro avg": {
+          "precision": 0.9165761092811144,
+          "recall": 0.9590638527344543,
+          "f1-score": 0.9360352670712321,
+          "support": 12338.0
+        },
+        "weighted avg": {
+          "precision": 0.9771652613848584,
+          "recall": 0.9744691197925109,
+          "f1-score": 0.9753967972890265,
+          "support": 12338.0
+        }
+      }
+    }
+  },
+  "mejora_f1_rf_vs_lr": 0.2391,
+  "modelo_recomendado": "random_forest",
+  "importancia_variables": {
+    "brillo_ti4": 0.3254,
+    "dif_brillo": 0.2697,
+    "brillo_ti5": 0.1229,
+    "track": 0.0813,
+    "es_noche": 0.0388,
+    "frp": 0.0387,
+    "hora_utc": 0.0387,
+    "latitud": 0.0347,
+    "longitud": 0.0254,
+    "scan": 0.0245
+  }
+}

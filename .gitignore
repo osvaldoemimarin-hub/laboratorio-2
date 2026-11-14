@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Secretos (FIRMS_MAP_KEY)
+.env
+
+# Datos generados por el pipeline (se regeneran con el DAG)
+incendios_etl/data/bronze/*
+incendios_etl/data/silver/*
+incendios_etl/data/gold/*
+incendios_etl/data/warehouse/*
+!incendios_etl/data/**/.gitkeep
+
+# Modelos serializados (se regeneran)
+incendios_etl/outputs/models/*
+!incendios_etl/outputs/models/.gitkeep
+
+# Airflow
+airflow-incendios/logs/*
+!airflow-incendios/logs/.gitkeep
+airflow-incendios/config/airflow.cfg
+
+# Material del curso (copia de un artículo de terceros)
+instruciones_lab_2.pdf
