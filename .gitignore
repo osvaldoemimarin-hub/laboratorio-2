@@ -11,6 +11,7 @@ __pycache__/
 incendios_etl/data/bronze/*
 incendios_etl/data/silver/*
 incendios_etl/data/gold/*
+!incendios_etl/data/gold/gold_final.csv
 incendios_etl/data/warehouse/*
 !incendios_etl/data/**/.gitkeep
 
