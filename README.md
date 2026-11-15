@@ -166,6 +166,20 @@ Brasil concentra el 57 % de las detecciones. Sin embargo, al relativizar por su 
 
 El análisis completo está en [docs/reporte_final.md](docs/reporte_final.md).
 
+### Muestra de datos de las capas Bronze y Silver
+
+Los datos de Bronze, Silver y el almacén se regeneran en cada ejecución y no se versionan. Como evidencia de cada capa, el repositorio incluye la **muestra de una corrida local del 15-nov-2026** (feed público de FIRMS, 57.123 detecciones):
+
+| Capa | Archivo |
+|---|---|
+| Bronze | [`firms_viirs_noaa20_feed_20261115T223426Z.csv`](incendios_etl/data/bronze/firms_viirs_noaa20_feed_20261115T223426Z.csv) — descarga de la API sin modificar |
+| Bronze | [`bosque_banco_mundial_descarga_20261115T223426Z.xls`](incendios_etl/data/bronze/bosque_banco_mundial_descarga_20261115T223426Z.xls) — Excel del Banco Mundial sin modificar |
+| Silver | [`silver_detecciones.csv`](incendios_etl/data/silver/silver_detecciones.csv) — detecciones limpias |
+| Silver | [`silver_bosque_pais.csv`](incendios_etl/data/silver/silver_bosque_pais.csv) — bosque por país limpio |
+| Silver | [`silver_integrado.csv`](incendios_etl/data/silver/silver_integrado.csv) — JOIN de ambas fuentes por país |
+
+La muestra es posterior a la ejecución en Airflow del 14-nov-2026 que documentan los resultados de arriba y `gold_final.csv`. FIRMS publica una ventana móvil de días, así que sus cifras no coinciden exactamente con las de esa ejecución.
+
 ## Equipo y roles Scrum
 
 | Rol | Integrante | Responsabilidades |

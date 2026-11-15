@@ -15,6 +15,13 @@ incendios_etl/data/gold/*
 incendios_etl/data/warehouse/*
 !incendios_etl/data/**/.gitkeep
 
+# Muestra de una corrida (15-nov-2026) como evidencia de las capas Bronze y Silver
+!incendios_etl/data/bronze/firms_viirs_noaa20_feed_20261115T223426Z.csv
+!incendios_etl/data/bronze/bosque_banco_mundial_descarga_20261115T223426Z.xls
+!incendios_etl/data/silver/silver_bosque_pais.csv
+!incendios_etl/data/silver/silver_detecciones.csv
+!incendios_etl/data/silver/silver_integrado.csv
+
 # Modelos serializados (se regeneran)
 incendios_etl/outputs/models/*
 !incendios_etl/outputs/models/.gitkeep
